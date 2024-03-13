@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  mysql:
+    image: mysql:5.7
+    platform: linux/x86_64
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: mydatabase
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+
+  myapp:
+    build:
+      context: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      MYSQL_USER: root
+      MYSQL_PASSWORD: rootpassword
+      MYSQL_HOST: mysql
+      REDIS_HOST: redis
