@@ -22,7 +22,11 @@ func AuthenticateUser(c *gin.Context) {
 
 	// Parse the token
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return []byte("your_jwt_secret"), nil // Replace "your_jwt_secret" with your actual JWT secret
+		// Check the signing method
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, jwt.ErrSignatureInvalid
+		}
+		return []byte("will"), nil // Replace "your_jwt_secret" with your actual JWT secret
 	})
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})

@@ -81,7 +81,14 @@ func LoginUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Login successful"})
+	// Generate a JWT token
+	token, err := utils.GenerateJWT(user.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate JWT token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"token": token})
 }
 
 func VerifyEmail(c *gin.Context) {
@@ -114,9 +121,9 @@ func Recommendation(c *gin.Context) {
 
 	// Check if data exists in Redis
 	redisClient := c.MustGet("redis").(*redis.Client)
-	ctx := c.Request.Context()
+	// ctx := c.Request.Context()
 
-	data, err := redisClient.Get(ctx, "recommendation_data").Result()
+	data, err := redisClient.Get("recommendation_data").Result()
 	if err == nil {
 		var result []models.RecommendationItem
 		if err := json.Unmarshal([]byte(data), &result); err != nil {
@@ -164,7 +171,7 @@ func Recommendation(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal data"})
 		return
 	}
-	if err := redisClient.Set(ctx, "recommendation_data", jsonData, 10*time.Minute).Err(); err != nil {
+	if err := redisClient.Set("recommendation_data", jsonData, 10*time.Minute).Err(); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save data to Redis"})
 		return
 	}

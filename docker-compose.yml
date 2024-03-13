@@ -3,7 +3,6 @@ version: "3.9"
 services:
   mysql:
     image: mysql:5.7
-    platform: linux/x86_64
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: mydatabase
@@ -29,4 +28,4 @@ services:
       MYSQL_USER: root
       MYSQL_PASSWORD: rootpassword
       MYSQL_HOST: mysql
-      REDIS_HOST: redis
+      MYSQL_DATABASE: mydatabase
