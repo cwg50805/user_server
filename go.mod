@@ -3,9 +3,11 @@ module userServer
 go 1.22
 
 require (
+	github.com/avast/retry-go v3.0.0+incompatible
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/go-sql-driver/mysql v1.8.0
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	golang.org/x/crypto v0.16.0
 )
