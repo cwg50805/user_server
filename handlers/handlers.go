@@ -17,6 +17,7 @@ import (
 
 func RegisterUser(c *gin.Context) {
 	var user models.User
+
 	if err := c.BindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -54,8 +55,8 @@ func RegisterUser(c *gin.Context) {
 	// TODO: Send the verification code to the user's email
 	utils.SendVerificationEmail(user.Email, verificationCode)
 
-	// Registration successful
-	c.JSON(http.StatusOK, gin.H{"message": "User registered successfully"})
+	// Registration successful, send verification code for debug use
+	c.JSON(http.StatusOK, gin.H{"message": "User registered successfully", "verification_code": verificationCode})
 }
 
 func LoginUser(c *gin.Context) {
@@ -66,11 +67,18 @@ func LoginUser(c *gin.Context) {
 		return
 	}
 
-	// Retrieve the user's password hash from the database
+	// Retrieve the user's password hash and verification status from the database
 	var storedPasswordHash string
-	err := db.QueryRow("SELECT password FROM users WHERE email = ?", user.Email).Scan(&storedPasswordHash)
+	var verified bool
+	err := db.QueryRow("SELECT password, verified FROM users WHERE email = ?", user.Email).Scan(&storedPasswordHash, &verified)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+		return
+	}
+
+	// Check if the user is verified
+	if !verified {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not verified"})
 		return
 	}
 

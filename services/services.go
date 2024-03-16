@@ -15,12 +15,40 @@ import (
 var redisClient *redis.Client
 
 func InitRedis() *redis.Client {
-	// Connect to Redis
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
-	})
+	// Get the Redis host from the environment variable
+	redisHost := os.Getenv("REDIS_HOST")
+	if redisHost == "" {
+		log.Fatal("REDIS_HOST environment variable not set")
+	}
+
+	var redisClient *redis.Client
+	err := retry.Do(
+		func() error {
+			// Connect to Redis
+			redisClient = redis.NewClient(&redis.Options{
+				Addr:     redisHost + ":6379",
+				Password: "",
+				DB:       0,
+			})
+
+			_, err := redisClient.Ping().Result()
+			if err != nil {
+				log.Printf("Failed to connect to Redis. Error: %v\n", err)
+				return err
+			}
+
+			log.Println("Successfully connected to Redis")
+			return nil
+		},
+		retry.Delay(1*time.Second),
+		retry.Attempts(10),
+		retry.LastErrorOnly(true),
+	)
+
+	if err != nil {
+		log.Fatalf("Failed to connect to Redis after 3 attempts: %v", err)
+	}
+
 	return redisClient
 }
 
